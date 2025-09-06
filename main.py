@@ -9,31 +9,36 @@ from numpy import (
     sum,
     append,
     random,
+    power,
 )
 from random import gauss
+from math import sqrt
 
 
 def main():
-    train()
+    train(10)
 
 
-def train():
+def train(n_params):
     Xs = linspace(-10, 10, num=100)
     Y_true = square(Xs, 1)
 
     a0 = gauss(0, 1)
-    an = random.normal(0, 1, 10)
-    bn = random.normal(0, 1, 10)
+    an = random.normal(0, n_params, 1)
+    bn = random.normal(0, n_params, 1)
     L = gauss(0, 1)
-    learning_rate = 0.1
+    learning_rate = 0.0001
 
-    for i in range(1000):
-        print(a0, an, bn, L)
+    errors = []
+    for i in range(2000):
         for x, y_true in zip(Xs, Y_true):
             a0, an, bn, L = descent(x, a0, L, an, bn, y_true, learning_rate)
 
+        Y_pred = predict(Xs, a0, L, an, bn)
+        errors.append(mse(Y_true, Y_pred))
+
     Y_pred = predict(Xs, a0, L, an, bn)
-    return Xs, Y_true, Y_pred
+    return Xs, Y_true, Y_pred, errors
 
 
 def square(x, period):
@@ -46,14 +51,14 @@ def fourier(x, a0, L, an, bn):
     return a0 + sum(an * cos(na * x * (pi / L))) + sum(bn * sin(nb * x * (pi / L)))
 
 
-def fourier_derivative(x, a0, L, an, bn, y):
+def fourier_derivative(x, a0, L, an, bn, y, y_pred):
     n = arange(1, len(an) + 1)
-    a0_d = -2 * (y - fourier(x, a0, L, an, bn))
-    an_d = -2 * (y - fourier(x, a0, L, an, bn)) * cos(n * x * pi / L)
-    bn_d = -2 * (y - fourier(x, a0, L, an, bn)) * sin(n * x * pi / L)
+    a0_d = -2 * (y - y_pred)
+    an_d = -2 * (y - y_pred) * cos(n * x * pi / L)
+    bn_d = -2 * (y - y_pred) * sin(n * x * pi / L)
     L_d = (
         -2
-        * (y - fourier(x, a0, L, an, bn))
+        * (y - y_pred)
         * (
             sum(an * sin(n * x * pi / L) * n * x * pi / L**2)
             - sum(bn * cos(n * x * pi / L) * n * x * pi / L**2)
@@ -63,7 +68,8 @@ def fourier_derivative(x, a0, L, an, bn, y):
 
 
 def descent(x, a0, L, an, bn, y, learning_rate):
-    a0_d, an_d, bn_d, L_d = fourier_derivative(x, a0, L, an, bn, y)
+    y_pred = fourier(x, a0, L, an, bn)
+    a0_d, an_d, bn_d, L_d = fourier_derivative(x, a0, L, an, bn, y, y_pred)
 
     a0 = a0 - learning_rate * a0_d
     an = an - learning_rate * an_d
@@ -71,6 +77,10 @@ def descent(x, a0, L, an, bn, y, learning_rate):
     L = L - learning_rate * L_d
 
     return a0, an, bn, L
+
+
+def mse(true, pred):
+    return sum(power(true - pred, 2)) / len(true)
 
 
 def predict(Xs, a0, L, an, bn):
