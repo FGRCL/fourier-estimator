@@ -3,9 +3,17 @@ name = "fourier-estimator"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = "==3.10.*"
 dependencies = [
+    "keras==2.15.0",
     "matplotlib>=3.10.3",
     "notebook>=7.4.2",
-    "numpy>=2.2.6",
+    "numpy>=1.26.4",
+    "tensorflow>=2.15.1",
+    "tqdm>=4.67.1",
+]
+
+[tool.uv]
+required-environments = [
+    "sys_platform == 'darwin' and platform_machine == 'x86_64'",
 ]
