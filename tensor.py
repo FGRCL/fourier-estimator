@@ -11,7 +11,6 @@ def main():
 
     model = Sequential([
         FourierLayer(10),
-        # Linear(input_dim=1),
     ])
 
     model.compile(
